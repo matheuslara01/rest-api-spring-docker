@@ -1,0 +1,68 @@
+services:
+  db:
+    image: 'postgres:latest'
+    container_name: postgresql_container
+    environment:
+      - 'POSTGRES_DB=testdb'
+      - 'POSTGRES_PASSWORD=root'
+      - 'POSTGRES_USER=root'
+    ports:
+      - '5432:5432'
+    restart: always
+
+  backend1:
+    build: .
+    container_name: demo_container1
+    hostname: api1
+    environment:
+      - 'SERVER_PORT=8000'
+      - 'DATABASE_URL=jdbc:postgresql://db:5432/testdb'
+      - 'DATABASE_USERNAME=root'
+      - 'DATABASE_PASSWORD=root'
+    depends_on:
+      - db
+    expose:
+      - "8000"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '0.7GB'
+
+  backend2:
+    build: .
+    container_name: demo_container2
+    hostname: api2
+    environment:
+      - 'SERVER_PORT=8000'
+      - 'DATABASE_URL=jdbc:postgresql://db:5432/testdb'
+      - 'DATABASE_USERNAME=root'
+      - 'DATABASE_PASSWORD=root'
+    depends_on:
+      - db
+    expose:
+      - "8000"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: '0.7GB'
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend1
+      - backend2
+    ports:
+      - '9999:9999'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: '0.1GB'
+
+
